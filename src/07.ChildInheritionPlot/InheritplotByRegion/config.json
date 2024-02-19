@@ -1,0 +1,13 @@
+{
+    "binw": 10,
+    "binh": 10,
+    "binmargin": 1,
+    "ColorMap": {
+        "+":"#c55a11",
+        "-":"#2e75b6",
+        "±":"#d3d3d3",
+        ".":"#ffffff"
+    },
+    "Marker": [["Rht-B1", 30]],
+    "MarkerStart": 0
+}

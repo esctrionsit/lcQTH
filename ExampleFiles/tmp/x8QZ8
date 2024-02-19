@@ -1,0 +1,4 @@
+cd /mnt/c/Users/esctrionsit/Downloads/代码-本地部署/runtime/08.Marker2Table/
+#python3 02.generate.hmp.py "chr1A,chr1B"
+#python3 03.hmp2excel.py "Parent1,Parent2"
+#cp 03.hmp2excel.xlsx /mnt/c/Users/esctrionsit/Downloads/代码-本地部署/a

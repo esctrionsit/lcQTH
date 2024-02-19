@@ -1,0 +1,5 @@
+<Phenotype>
+taxa	data
+Taxa	SL
+R01	9.765000000008106
+R02	9.825000000008103

@@ -1,0 +1,12 @@
+{
+    "ChromosomeLengthFile": "ExampleFiles/ChrLen.txt",
+    "BamFolder": "ExampleFiles/bams",
+    "VcfFolder": "ExampleFiles/vcfs",
+    "VcfFileSuffixes": ".bcf.gz",
+    "ParentsName": ["Parent1", "Parent2"],
+    "OffspringListFile": "ExampleFiles/RilList.txt",
+    "ResolutionInKb": 50,
+    "MaxThreads": 50,
+    "TmpFolderPath": "ExampleFiles/tmp",
+    "PhenotypeFile": "ExampleFiles/pheno.txt"
+}
