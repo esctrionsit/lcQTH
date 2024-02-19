@@ -27,7 +27,7 @@ def printHelp():
 	print("  exportxlsx        Export parental haplotypes of RILs in hapmap format and saved in an Excel spreadsheet")
 	print("")
 	print("Run 'python3 lcQTH.py COMMAND --help' for more information on a command.")
-	print("lcQTH online help: <https://>")
+	print("lcQTH online help: <https://github.com/esctrionsit/lcQTH/wiki/>")
 
 def printCommandHelp(command):
 	if command == "init":
