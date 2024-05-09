@@ -8,5 +8,15 @@
     "ResolutionInKb": 50,
     "MaxThreads": 50,
     "TmpFolderPath": "ExampleFiles/tmp",
-    "PhenotypeFile": "ExampleFiles/pheno.txt"
+    "PhenotypeFile": "ExampleFiles/pheno.txt",
+    "transmat_": [
+        [0.9, 0.08, 0.02],
+    	[0.15, 0.7, 0.15],
+    	[0.02, 0.08, 0.9],
+    ],
+    "emissionprob_": [
+        [0.9, 0.04, 0.04, 4e-05, 0.02],
+        [0.05, 0.1, 0.7, 0.1, 0.05],
+        [0.02, 4e-05, 0.04, 0.04, 0.9]
+    ]
 }
