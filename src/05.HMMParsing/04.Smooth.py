@@ -1,6 +1,7 @@
 #python3
 import os
 import sys
+import json
 import math
 import numpy
 import traceback
@@ -11,6 +12,10 @@ MAXTHR = int(sys.argv[1])
 BINwidth = int(sys.argv[2])
 CNVBinWidth = int(sys.argv[3])
 Parents = sys.argv[4].split(",")
+HMMparaF = sys.argv[5]
+
+with open(HMMparaF) as f:
+	HMMpara = json.loads(f.read())
 
 BinmergeCount = 1
 if CNVBinWidth == BINwidth:
@@ -49,16 +54,18 @@ n_obs = len(observes)
 
 model = hmm.MultinomialHMM(n_components=n_states, n_iter=20, tol=0.001)
 model.startprob_ = numpy.array([0.33, 0.33, 0.33])
-model.transmat_ = numpy.array([
-	[0.9, 0.08, 0.02],
-	[0.15, 0.7, 0.15],
-	[0.02, 0.08, 0.9],
-])
-model.emissionprob_ = numpy.array([
-	[0.9, 0.04, 0.04, 4e-05, 0.02],
-	[0.05, 0.1, 0.7, 0.1, 0.05],
-	[0.02, 4e-05, 0.04, 0.04, 0.9]
-])
+model.transmat_ = numpy.array(HMMpara["transmat_"])
+# model.transmat_ = numpy.array([
+# 	[0.9, 0.08, 0.02],
+# 	[0.15, 0.7, 0.15],
+# 	[0.02, 0.08, 0.9],
+# ])
+model.emissionprob_ = numpy.array(HMMpara["emissionprob_"])
+# model.emissionprob_ = numpy.array([
+# 	[0.9, 0.04, 0.04, 4e-05, 0.02],
+# 	[0.05, 0.1, 0.7, 0.1, 0.05],
+# 	[0.02, 4e-05, 0.04, 0.04, 0.9]
+# ])
 
 model.startprob_ = model.startprob_/ sum(model.startprob_)
 model.transmat_ = model.transmat_ / model.transmat_.sum(axis=1)[:, numpy.newaxis]
