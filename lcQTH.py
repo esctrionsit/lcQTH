@@ -165,6 +165,18 @@ def loadConfigFile(filePath):
 	if len(missingList) != 0:
 		print("[E] Key terms are missing in config file. The missing terms are: " + ", ".join(missingList), file=sys.stderr)
 		exit(1)
+	if not "transmat_" in configs:
+		configs["transmat_"] = [
+			[0.9, 0.08, 0.02],
+			[0.15, 0.7, 0.15],
+			[0.02, 0.08, 0.9],
+	    ]
+	if not "emissionprob_" in configs:
+		configs["emissionprob_"] = [
+	        [0.9, 0.04, 0.04, 4e-05, 0.02],
+	        [0.05, 0.1, 0.7, 0.1, 0.05],
+	        [0.02, 4e-05, 0.04, 0.04, 0.9]
+	    ]
 	# Convert relative path to absolute path
 	if len(configs["ChromosomeLengthFile"]) != 0:
 		if configs["ChromosomeLengthFile"][0] != "/":
@@ -420,12 +432,18 @@ def runStep5(conf):
 			f.write(chrom + "\t" + str(conf["ChrLen"][chrom]) + "\n")
 	# Run
 	token = random_str(5)
+	tp = {
+		"transmat_": conf["transmat_"],
+		"emissionprob_": conf["emissionprob_"],
+	}
+	with open(conf["TmpFolderPath"] + "/" + token + ".para", "w") as f:
+		f.write(json.dumps(tp))
 	s = "cd " + projectPath + "/runtime/05.HMMParsing/\n"
 	s += "rm -f data/*\n"
 	s += "rm -f RawPhaseParentalRatio/*\n"
 	s += "go run \"Childs.txt\" \"chrlen.txt\" \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + str(conf["ResolutionInKb"]*1000*2) + "\"\n"
 	s += "python3 02.Chr2SM.py  \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
-	s += "python3 04.Smooth.py  \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + "1000000" + "\" \"" + ",".join(conf["ParentsName"]) + "\"\n"
+	s += "python3 04.Smooth.py  \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + "1000000" + "\" \"" + ",".join(conf["ParentsName"]) + "\" " + conf["TmpFolderPath"] + "/" + token + ".para" + "\n"
 	s += "python3 05.finalRawMarkers.py  \"" + str(conf["ResolutionInKb"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 		f.write(s)
