@@ -4,25 +4,26 @@ Rapid quantitative trait mapping through tracing parental haplotype with ultra-l
 
 ## Recommanded environments with version tested:
 
-+ Linux system with a 64 bit CPU
++ Linux system with 64 bit CPU
 + Bcftools v1.11
 + Bedtools v2.29.2
 + python v3.7.6
 + python packages:
   + hmmlearn v0.2.4
-  + openpyxl
+  + scikit_learn v1.3.2
+  + openpyxl v3.0.7
 + R v3.6
 + R packages:
-  + ComplexHeatmap
-  + qtl
+  + ComplexHeatmap v2.0.0
+  + qtl v1.46-2
 + Golang 1.20.3 linux/amd64
 + gcc version 11.2.1 20220127 (Red Hat 11.2.1-9) (GCC)
 + Node v14.17.5
 + Node packages:
   + d3@4.13.0
   + jsdom@15.2.1
-  + jspdf
-  + svg2pdf.js
+  + jspdf@2.5.1
+  + svg2pdf.js@2.2.1
 
 ## Installation
 
