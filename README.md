@@ -2,7 +2,7 @@
 
 Rapid quantitative trait mapping through tracing parental haplotype with ultra-low-coverage sequencing
 
-## Prerequisites & version tested:
+## Recommanded environments with version tested:
 
 + Linux system with a 64 bit CPU
 + Bcftools v1.11
@@ -53,4 +53,4 @@ Example files are in `ExampleFiles`.
 
 ## Citation
 
-(Unpublished)
+Wenxi Wang, Zhe Chen, Zhengzhao Yang, Zihao Wang, Jilu Liu, Jie Liu, Huiru Peng, Zhenqi Su, Zhongfu Ni, Qixin Sun, Weilong Guo. lcQTH: rapid quantitative trait mapping through tracing parental haplotype with ultra-low-coverage sequencing, Plant Communications, 2024. https://doi.org/10.1016/j.xplc.2024.101008.
