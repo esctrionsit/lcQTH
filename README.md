@@ -2,6 +2,8 @@
 
 Rapid quantitative trait mapping through tracing parental haplotype with ultra-low-coverage sequencing
 
+View homepage at [https://esctrionsit.github.io/lcQTH](https://esctrionsit.github.io/lcQTH)
+
 ## Recommanded environments with version tested:
 
 + Linux system with 64 bit CPU
