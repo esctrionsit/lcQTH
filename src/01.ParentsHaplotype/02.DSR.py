@@ -72,6 +72,8 @@ def calDSR(chrom):
         # Load DSR Matrix
         with open(tmppath + "/" + chrom + ".dsr") as f:
             DSRlines = f.readlines()
+        os.system("rm " + tmppath + "/" + chrom + ".SNPMAT")
+        os.system("rm " + tmppath + "/" + chrom + ".dsr")
         # Combine DSR Matrix
         combineDSRcontentline = []
         for i in range(len(SM_accidlst)):
@@ -85,7 +87,7 @@ def calDSR(chrom):
 
 
 
-
+MAXTHR = len(CHRlis) if len(CHRlis) <  MAXTHR else MAXTHR
 proce_pool = Pool(processes = MAXTHR) # 限制同时运行的最大进程数
 mulres = [] # 可保存返回值，顺序不定
 for chrom in CHRlis:

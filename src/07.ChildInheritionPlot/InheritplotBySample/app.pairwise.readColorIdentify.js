@@ -63,10 +63,11 @@ for(let i=0; i<Object.keys(Phasedata).length; i++){
 }
 
 // Load Chromosome Centromere
-let centropos = fs.readFileSync("/data3/user3/wangwx/NodeJs/compareplot.1vN/paras/CHRcent.txt").toString().split("\n");
+let centropos = fs.readFileSync("../chrcent.txt").toString().split("\n");
 let chromcen = {};
 let chromorder = [];
 for(let i=0; i<centropos.length; i++){
+	if(centropos[i].length == 0){continue;}
 	let chrom = centropos[i].split("\t")[0];
 	let pos = parseInt(centropos[i].split("\t")[1]);
 	// chromcen[chrom] = pos

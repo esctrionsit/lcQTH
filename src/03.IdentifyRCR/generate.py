@@ -13,7 +13,7 @@ CHRlis = sys.argv[5].split(",")
 # Check Bam files
 checkFlag = False
 for CHR in CHRlis:
-	if (not os.path.exists(AlignPath + "/" + SMID + "." + CHR + ".bam")) or (not os.path.exists(AlignPath + "/" + SMID + "." + CHR + ".bam.bai")):
+	if (not os.path.exists(AlignPath + "/" + SMID + "." + CHR + ".bam")) or (not (os.path.exists(AlignPath + "/" + SMID + "." + CHR + ".bam.bai") or os.path.exists(AlignPath + "/" + SMID + "." + CHR + ".bam.csi"))):
 		print("[E] Bam file of " + SMID + " for chromosom " + CHR + " does not exists, or does not indexed. Please note that the bam file should be named as \"<Samplename>.<Chromosome>.bam\"", file=sys.stderr)
 		checkFlag = True
 if checkFlag:
@@ -53,12 +53,12 @@ def process_data(SM, chrom):
 		with open("ReadCovRegionList.tmp/" + SM + "." + chrom + ".txt", "w") as f:
 			f.write(s)
 		del s
-		del ReturnDataw
 		
 		print(SM, chrom)
 	except Exception as e:
 		traceback.print_exc()
 
+MAXTHR = len(CHRlis) if len(CHRlis) < MAXTHR else MAXTHR
 with Pool(processes = MAXTHR) as proce_pool:
 	mulres = []
 	if os.path.exists("ReadCovRegionList/" + SMID + ".txt") and os.path.getsize("ReadCovRegionList/" + SMID + ".txt") > 50:

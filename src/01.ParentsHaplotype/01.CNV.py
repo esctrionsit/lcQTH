@@ -16,7 +16,7 @@ MAXTHR = int(sys.argv[5])
 checkFlag = False
 for SM in SM_accidlst:
     for CHR in CHRlis:
-        if (not os.path.exists(bampath + "/" + SM + "." + CHR + ".bam")) or (not os.path.exists(bampath + "/" + SM + "." + CHR + ".bam.bai")):
+        if (not os.path.exists(bampath + "/" + SM + "." + CHR + ".bam")) or (not (os.path.exists(bampath + "/" + SM + "." + CHR + ".bam.bai") or os.path.exists(bampath + "/" + SM + "." + CHR + ".bam.csi"))):
             print("[E] Bam file of " + SM + " for chromosom " + CHR + " does not exists, or does not indexed. Please note that the bam file should be named as \"<Samplename>.<Chromosome>.bam\"", file=sys.stderr)
             checkFlag = True
 if checkFlag:
@@ -67,3 +67,5 @@ for k in range(len(SM_accidlst)):
             ob += "\t".join([chrom, ele]) + "\n"
     with open(outpath + "/" + SM_accidlst[k] + ".CNV", "w") as f:
         f.write(ob)
+    os.system("rm " + tmppath + "/chr*.1M.tmp")
+    os.system("rm " + tmppath + "/DPvaluecount")

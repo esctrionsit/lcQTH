@@ -53,7 +53,7 @@ BinmergeRatio = MergeWindowSize/PhaseWindowSize
 
 # Load Parents gIBD
 gIBDdic = {}
-with open("../01.ParentsHaplotype/gIBD.txt") as f:
+with open("../01.ParentsHaplotype/gIBD.tsv") as f:
     lines = f.readlines()
 header = lines[0].replace("\n", "").split("\t")[1:]
 gIBDstatus = lines[1].replace("\n", "").split("\t")[1]
@@ -194,12 +194,11 @@ def mergefunc(chrom):
     
 Bininfo = {}
 newSMData = {}
+MAXTHR = len(chrlen) if len(chrlen) < MAXTHR else MAXTHR
 with Pool(processes = MAXTHR) as proce_pool:
     mulres = []
-    for i in range(7):
-        for j in ["A", "B", "D"]:
-            chrom = "chr" + str(i+1) + j
-            mulres.append(proce_pool.apply_async(mergefunc, args=(chrom,)))
+    for chrom in chrlen:
+        mulres.append(proce_pool.apply_async(mergefunc, args=(chrom,)))
 
     proce_pool.close()
     proce_pool.join()
@@ -368,10 +367,8 @@ Bininfo = {}
 newSMData = {}
 with Pool(processes = MAXTHR) as proce_pool:
     mulres = []
-    for i in range(7):
-        for j in ["A", "B", "D"]:
-            chrom = "chr" + str(i+1) + j
-            mulres.append(proce_pool.apply_async(binningfunc, args=(chrom,)))
+    for chrom in chrlen:
+        mulres.append(proce_pool.apply_async(binningfunc, args=(chrom,)))
 
     proce_pool.close()
     proce_pool.join()

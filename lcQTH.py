@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED, ALL_COMPLETED
+import concurrent.futures
 import traceback
 import hashlib
 import random
@@ -159,7 +161,7 @@ def loadConfigFile(filePath):
 		exit(1)
 	# Validate
 	missingList = []
-	for configTerm in ["ChromosomeLengthFile", "BamFolder", "VcfFolder", "VcfFileSuffixes", "ParentsName", "OffspringListFile", "ResolutionInKb", "MaxThreads", "TmpFolderPath", "PhenotypeFile"]:
+	for configTerm in ["ChromosomeLengthFile", "ChromosomeCentromereInMBFile", "BamFolder", "VcfFolder", "VcfFileSuffixes", "ParentsName", "OffspringListFile", "ResolutionInKb", "MaxThreads", "TmpFolderPath", "PhenotypeFile"]:
 		if not configTerm in configs:
 			missingList.append(configTerm)
 	if len(missingList) != 0:
@@ -184,6 +186,13 @@ def loadConfigFile(filePath):
 			print("[W] Value of term \"ChromosomeLengthFile\" in config file is a relative path. It has been converted to \"" + configs["ChromosomeLengthFile"] + "\"", file=sys.stderr)
 	else:
 		print("[E] Value of term \"ChromosomeLengthFile\" in config file is empty.", file=sys.stderr)
+		exit(1)
+	if len(configs["ChromosomeCentromereInMBFile"]) != 0:
+		if configs["ChromosomeCentromereInMBFile"][0] != "/":
+			configs["ChromosomeCentromereInMBFile"] = os.path.normpath(projectPath + "/" + configs["ChromosomeCentromereInMBFile"])
+			print("[W] Value of term \"ChromosomeCentromereInMBFile\" in config file is a relative path. It has been converted to \"" + configs["ChromosomeCentromereInMBFile"] + "\"", file=sys.stderr)
+	else:
+		print("[E] Value of term \"ChromosomeCentromereInMBFile\" in config file is empty.", file=sys.stderr)
 		exit(1)
 	if len(configs["BamFolder"]) != 0:
 		if configs["BamFolder"][0] != "/":
@@ -238,6 +247,20 @@ def saveConfig(conf):
 			ele = line.strip().split()
 			ChrLen[ele[0]] = math.ceil(int(ele[1])/1000000)
 	conf["ChrLen"] = ChrLen
+	# Load chrom cent pos
+	if not os.path.exists(conf["ChromosomeCentromereInMBFile"]):
+		print("[E] The path for chromosome centromere position file is invalid.", file=sys.stderr)
+		exit(1)
+	with open(conf["ChromosomeCentromereInMBFile"]) as f:
+		lines = f.readlines()
+	ChrCent = {}
+	for line in lines:
+		if line.strip() == "":
+			continue
+		else:
+			ele = line.strip().split()
+			ChrCent[ele[0]] = int(ele[1])
+	conf["ChrCent"] = ChrCent
 	# Save
 	with open(projectPath + "/.paras", "w") as f:
 		f.write(json.dumps(conf))
@@ -290,6 +313,9 @@ def saveStatusToHtml(status):
 def runStep1(conf):
 	# Identifying parental haplotypes
 	## Generate bed files
+	os.system("mkdir -p " + projectPath + "/runtime/01.ParentsHaplotype/bed/")
+	os.system("mkdir -p " + projectPath + "/runtime/01.ParentsHaplotype/CNV/")
+	os.system("mkdir -p " + projectPath + "/runtime/01.ParentsHaplotype/diff/")
 	for chrom in conf["ChrLen"]:
 		s = ""
 		for i in range(conf["ChrLen"][chrom]):
@@ -309,6 +335,8 @@ def runStep1(conf):
 def runStep2(conf):
 	# Identificate CNV blocks in parents and offspring lines
 	## Generate bed files
+	os.system("mkdir -p " + projectPath + "/runtime/02.CNVidentify/bed/")
+	os.system("mkdir -p " + projectPath + "/runtime/02.CNVidentify/CNV/")
 	for chrom in conf["ChrLen"]:
 		s = ""
 		for i in range(conf["ChrLen"][chrom]):
@@ -336,6 +364,8 @@ def runStep2(conf):
 def runStep3(conf):
 	# Identificate reads-covered regions in offspring lines
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/03.IdentifyRCR/ReadCovRegionList.tmp/")
+	os.system("mkdir -p " + projectPath + "/runtime/03.IdentifyRCR/ReadCovRegionList/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -346,17 +376,24 @@ def runStep3(conf):
 		if line.strip() != "":
 			offspring.append(line.strip())
 	# Run
-	token = random_str(5)
-	for SM in offspring:
-		s = "cd " + projectPath + "/runtime/03.IdentifyRCR/\n"
-		s += "python3 generate.py \"" + SM + "\" \"" + conf["BamFolder"] + "\" \"" + conf["TmpFolderPath"] + "\" \""  + str(conf["MaxThreads"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
-		with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
-			f.write(s)
-		os.system("bash " + conf["TmpFolderPath"] + "/" + token)
+	MAXTHR4Call = int(conf["MaxThreads"]/len(conf["ChrLen"].keys()))
+	MAXTHR4Call = 1 if MAXTHR4Call < 1 else MAXTHR4Call
+	with ThreadPoolExecutor(max_workers=16) as t: 
+		all_task = []
+		for SM in offspring:
+			token = random_str(5)
+			s = "cd " + projectPath + "/runtime/03.IdentifyRCR/\n"
+			s += "python3 generate.py \"" + SM + "\" \"" + conf["BamFolder"] + "\" \"" + conf["TmpFolderPath"] + "\" \""  + str(conf["MaxThreads"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
+			s += "rm " + conf["TmpFolderPath"] + "/" + token
+			with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
+				f.write(s)
+			all_task.append(t.submit(runShell, "bash " + conf["TmpFolderPath"] + "/" + token))
+		wait(all_task, return_when=ALL_COMPLETED)
 
 def runStep4(conf):
 	# Assign raw parental haplotypes to RCRs.
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/04.HaplotypeRCR/Rawphase/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -389,7 +426,8 @@ def runStep4(conf):
 			with open(projectPath + "/runtime/04.HaplotypeRCR/Childs.txt", "w") as f:
 				f.write(s)
 			s = "cd " + projectPath + "/runtime/04.HaplotypeRCR/\n"
-			s += "go run phaseRaw.bychr.go \"" + projectPath + "/runtime/04.HaplotypeRCR/Childs.txt" + "\" \"" + conf["ParentsName"][0] + "\" \"" + conf["ParentsName"][1] + "\" \""  + str(len(conf["MaxThreads"])) + "\" \"" + conf["VcfFolder"] + "\" \"" + conf["VcfFileSuffixes"] + "\" \"" + conf["TmpFolderPath"] + "\" \""  + str(len(conf["ChrLen"])) + "\"\n"
+			s += "go run phaseRaw.bychr.go \"" + projectPath + "/runtime/04.HaplotypeRCR/Childs.txt" + "\" \"" + conf["ParentsName"][0] + "\" \"" + conf["ParentsName"][1] + "\" \""  + str(conf["MaxThreads"]) + "\" \"" + conf["VcfFolder"] + "\" \"" + conf["VcfFileSuffixes"] + "\" \"" + conf["TmpFolderPath"] + "\" \""  + str(len(conf["ChrLen"])) + "\"\n"
+			s += "rm " + conf["TmpFolderPath"] + "/" + token + "\n"
 			with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 				f.write(s)
 			os.system("bash " + conf["TmpFolderPath"] + "/" + token)
@@ -414,6 +452,10 @@ def runStep4(conf):
 def runStep5(conf):	
 	# Trace parental haplotypes in offspring lines
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/05.HMMParsing/data/")
+	os.system("mkdir -p " + projectPath + "/runtime/05.HMMParsing/RawPhaseParentalRatio/")
+	os.system("mkdir -p " + projectPath + "/runtime/05.HMMParsing/SMphase/")
+	os.system("mkdir -p " + projectPath + "/runtime/05.HMMParsing/SMphase.smooth/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -441,10 +483,11 @@ def runStep5(conf):
 	s = "cd " + projectPath + "/runtime/05.HMMParsing/\n"
 	s += "rm -f data/*\n"
 	s += "rm -f RawPhaseParentalRatio/*\n"
-	s += "go run \"Childs.txt\" \"chrlen.txt\" \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + str(conf["ResolutionInKb"]*1000*2) + "\"\n"
+	s += "go run 01.rawphase.go \"Childs.txt\" \"chrlen.txt\" \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + str(conf["ResolutionInKb"]*1000*2) + "\"\n"
 	s += "python3 02.Chr2SM.py  \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
 	s += "python3 04.Smooth.py  \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + "1000000" + "\" \"" + ",".join(conf["ParentsName"]) + "\" " + conf["TmpFolderPath"] + "/" + token + ".para" + "\n"
 	s += "python3 05.finalRawMarkers.py  \"" + str(conf["ResolutionInKb"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
+	s += "rm " + conf["TmpFolderPath"] + "/" + token + "*\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 		f.write(s)
 	os.system("bash " + conf["TmpFolderPath"] + "/" + token)
@@ -452,6 +495,8 @@ def runStep5(conf):
 def runStep6(conf):
 	# Remove markers in regions that parents have the identical backgrounts and do filtering
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/06.MarkerScaling/ParentalRatio/")
+	os.system("mkdir -p " + projectPath + "/runtime/06.MarkerScaling/binned/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -472,6 +517,7 @@ def runStep6(conf):
 	token = random_str(5)
 	s = "cd " + projectPath + "/runtime/06.MarkerScaling/\n"
 	s += "python3 downScaling.parallel.py \"1000\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
+	s += "rm " + conf["TmpFolderPath"] + "/" + token + "*\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 		f.write(s)
 	os.system("bash " + conf["TmpFolderPath"] + "/" + token)
@@ -479,6 +525,7 @@ def runStep6(conf):
 def runStep7(conf):
 	# Plot parental haplotypes in offspring lines
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/07.ChildInheritionPlot/InheritplotBySample/Inheritplot/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -495,6 +542,10 @@ def runStep7(conf):
 	with open(projectPath + "/runtime/07.ChildInheritionPlot/chrlen.txt", "w") as f:
 		for chrom in conf["ChrLen"]:
 			f.write(chrom + "\t" + str(conf["ChrLen"][chrom]) + "\n")
+	## Write chrom cent pos
+	with open(projectPath + "/runtime/07.ChildInheritionPlot/chrcent.txt", "w") as f:
+		for chrom in conf["ChrCent"]:
+			f.write(chrom + "\t" + str(conf["ChrCent"][chrom]) + "\n")
 	# Run
 	token = random_str(5)
 	s = "cd " + projectPath + "/runtime/07.ChildInheritionPlot/InheritplotBySample\n"
@@ -506,6 +557,7 @@ def runStep7(conf):
 def runStep8(conf):
 	# Build genetic map
 	## Load offspring list
+	os.system("mkdir -p " + projectPath + "/runtime/09.BuildGeneticMap/GM/")
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
 		exit(1)
@@ -664,6 +716,9 @@ def readCommand():
 			else:
 				command["Parameters"][l[i]] = True
 	return command
+
+def runShell(command):
+	os.system(command)
 
 if __name__ == '__main__':
 	if len(sys.argv) == 1:

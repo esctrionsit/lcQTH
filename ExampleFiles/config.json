@@ -1,5 +1,6 @@
 {
     "ChromosomeLengthFile": "ExampleFiles/ChrLen.txt",
+    "ChromosomeCentromereInMBFile": "ExampleFiles/CHRcent.txt",
     "BamFolder": "ExampleFiles/bams",
     "VcfFolder": "ExampleFiles/vcfs",
     "VcfFileSuffixes": ".bcf.gz",

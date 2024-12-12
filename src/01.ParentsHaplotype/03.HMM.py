@@ -180,6 +180,7 @@ def call(chrom):
 	return [chrom, gIBDStatusSeqs]
 		
 	
+MAXTHR = len(CHRlis) if len(CHRlis) <  MAXTHR else MAXTHR
 proce_pool = Pool(processes = MAXTHR)
 mulres = []
 for chrom in CHRlis:
