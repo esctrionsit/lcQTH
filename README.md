@@ -52,7 +52,9 @@ Run 'python3 lcQTH.py COMMAND --help' for more information on a command.
 
 ## Input file format
 
-Example files are in `ExampleFiles`.
+Example files are in `ExampleFiles/`.
+
+**Note:** Some files in `ExampleFiles/` are empty to reduce the size of the whole repo. A runnable example dataset can be downloaded at [https://doi.org/10.57760/sciencedb.18595](https://doi.org/10.57760/sciencedb.18595).
 
 ## Citation
 
