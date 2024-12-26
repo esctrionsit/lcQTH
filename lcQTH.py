@@ -40,6 +40,7 @@ def printCommandHelp(command):
 		print("")
 		print("Options:")
 		print("  --config=[path]   Initialize the project with a configuration file.")
+		print("  --ParentalResolutionInKb=[int]   (Optional) Manually setting the window size in parental haplotype defining in step 1. Its default value will be 2*ResolutionInKb.")
 		print("")
 		print("lcQTH online help: <https://github.com/esctrionsit/lcQTH/wiki/>")
 	elif command == "status" and False:
