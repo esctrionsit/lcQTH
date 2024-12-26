@@ -16,8 +16,10 @@ outpath = './'
 SM_accidlst = sys.argv[1].split(",")
 CHRlis = sys.argv[2].split(",")
 MAXTHR = int(sys.argv[3])
+BinSizeInKb = int(sys.argv[4])
 
 # Pre-defines
+DistanceScaleRatio = 1000/BinSizeInKb
 SM_vcfidlst = SM_accidlst
 gIBDCNVCode = {
 	"nor":{
@@ -113,7 +115,7 @@ def call(chrom):
 			if CNVstatusdic[SMlst[0]][chrom][i] != "nor" or CNVstatusdic[SMlst[1]][chrom][i] != "nor":
 				DiffData[j].append(math.log10(0.001))
 			else:
-				DiffData[j].append(math.log10(10+float(ele[j])))
+				DiffData[j].append(math.log10(10+float(ele[j])*DistanceScaleRatio))
 	# Use HMM Model to Phase gIBD
 	gIBDStatusSeqs = []
 	for SMPAIRidx in range(len(header)):

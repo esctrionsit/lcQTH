@@ -4,10 +4,10 @@ from multiprocessing import Pool, Process, Manager
 import traceback
 
 MAFthreahold = 0.3 # lower loci will be deleted, 0 for ignore this filter
-gIBDWindowSize = 1000  # Kb
-CNVWindowSize = int(sys.argv[1])  # Kb
-PhaseWindowSize = int(sys.argv[2])  # Kb
-MergeWindowSize = int(sys.argv[3]) # Kb
+gIBDWindowSize = int(sys.argv[1])  # Kb
+CNVWindowSize = int(sys.argv[2])  # Kb
+PhaseWindowSize = int(sys.argv[3])  # Kb
+MergeWindowSize = int(sys.argv[4]) # Kb
 doBinning = True
 doResmoothing = True
 doStrictSmooth = False
@@ -20,15 +20,15 @@ OutParentalRatioPath = "ParentalRatio"
 OutBinInfoPath = "02.Bininfo.binned.txt"
 OutHapPath = "binned"
 
-MAXTHR = int(sys.argv[4])
+MAXTHR = int(sys.argv[5])
 
-# chrlen (Mb)
+# chrlen (bp => Kb)
 with open("chrlen.txt") as f:
     lines = f.readlines()
 chrlen = {}
 for line in lines:
     ele = line.strip().split("\t")
-    chrlen[ele[0]] = int(ele[1])
+    chrlen[ele[0]] = math.ceil(int(ele[1])/1000)
 
 # Calculating gIBD <-> Phase scaling factor
 BinmergeCount4gIBD = 1
@@ -149,7 +149,7 @@ def mergefunc(chrom):
             newSMData[SM][chrom] = ""
             Sideout[SM] = ["", ""]
         BinInfoCursor = 0
-        for MWS in range(0, chrlen[chrom]*1000, MergeWindowSize):
+        for MWS in range(0, chrlen[chrom], MergeWindowSize):
             BinInfoCursor_tmp = None
             passflag = False
             for SM in SMData:
@@ -176,7 +176,7 @@ def mergefunc(chrom):
                 Sideout[SM][0] += str(round(count[0]/sum(count)*100,1)) + ","
                 Sideout[SM][1] += str(round(count[1]/sum(count)*100,1)) + ","
             if not passflag:
-                Bininfo[chrom].append([MWS, (MWS+MergeWindowSize if MWS+MergeWindowSize < chrlen[chrom]*1000 else chrlen[chrom]*1000)])
+                Bininfo[chrom].append([MWS, (MWS+MergeWindowSize if MWS+MergeWindowSize < chrlen[chrom] else chrlen[chrom])])
             BinInfoCursor = BinInfoCursor_tmp
                 
 

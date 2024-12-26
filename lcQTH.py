@@ -143,10 +143,10 @@ def init(Para):
 	newRuntime(projectPath)
 	# Update config
 	if "config" in Para:
-		conf = loadConfigFile(Para["config"])
+		conf = loadConfigFile(Para["config"], "" if (not "ParentalResolutionInKb" in Para) else Para["ParentalResolutionInKb"])
 		saveConfig(conf)
 
-def loadConfigFile(filePath):
+def loadConfigFile(filePath, ParentalResolutionInKb):
 	# Read file
 	if filePath == None:
 		filePath = "config.json"
@@ -179,6 +179,11 @@ def loadConfigFile(filePath):
 	        [0.05, 0.1, 0.7, 0.1, 0.05],
 	        [0.02, 4e-05, 0.04, 0.04, 0.9]
 	    ]
+	# Parse ParentalResolutionInKb
+	if ParentalResolutionInKb != "":
+		configs["ParentalResolutionInKb"] = int(ParentalResolutionInKb)
+	else:
+		configs["ParentalResolutionInKb"] = 2*configs["ResolutionInKb"]
 	# Convert relative path to absolute path
 	if len(configs["ChromosomeLengthFile"]) != 0:
 		if configs["ChromosomeLengthFile"][0] != "/":
@@ -245,7 +250,7 @@ def saveConfig(conf):
 			continue
 		else:
 			ele = line.strip().split()
-			ChrLen[ele[0]] = math.ceil(int(ele[1])/1000000)
+			ChrLen[ele[0]] = int(ele[1])
 	conf["ChrLen"] = ChrLen
 	# Load chrom cent pos
 	if not os.path.exists(conf["ChromosomeCentromereInMBFile"]):
@@ -318,16 +323,16 @@ def runStep1(conf):
 	os.system("mkdir -p " + projectPath + "/runtime/01.ParentsHaplotype/diff/")
 	for chrom in conf["ChrLen"]:
 		s = ""
-		for i in range(conf["ChrLen"][chrom]):
-			s += chrom + "\t" + str(i*1000000+1) + "\t" + str((i+1)*1000000) + "\n"
-		with open(projectPath + "/runtime/01.ParentsHaplotype/bed/" + chrom + ".1M.bed", "w") as f:
+		for i in range(0, conf["ChrLen"][chrom], conf["ParentalResolutionInKb"]*1000):
+			s += chrom + "\t" + str(i+1) + "\t" + str(i+conf["ParentalResolutionInKb"]*1000) + "\n"
+		with open(projectPath + "/runtime/01.ParentsHaplotype/bed/" + chrom + ".bed", "w") as f:
 			f.write(s)
 	## Generate running script
 	token = random_str(5)
 	s = "cd " + projectPath + "/runtime/01.ParentsHaplotype/\n"
 	s += "python3 01.CNV.py \"" + conf["BamFolder"] + "\" \"" + conf["TmpFolderPath"] + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\" \"" + ",".join(conf["ParentsName"]) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
 	s += "python3 02.DSR.py \"" + conf["VcfFolder"] + "\" \"" + conf["VcfFileSuffixes"] + "\" \"" + conf["TmpFolderPath"] + "\" \"" + ",".join(conf["ParentsName"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
-	s += "python3 03.HMM.py \"" + ",".join(conf["ParentsName"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
+	s += "python3 03.HMM.py \"" + ",".join(conf["ParentsName"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\" \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ParentalResolutionInKb"]) + "\"\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 		f.write(s)
 	os.system("bash " + conf["TmpFolderPath"] + "/" + token)
@@ -339,9 +344,9 @@ def runStep2(conf):
 	os.system("mkdir -p " + projectPath + "/runtime/02.CNVidentify/CNV/")
 	for chrom in conf["ChrLen"]:
 		s = ""
-		for i in range(conf["ChrLen"][chrom]):
-			s += chrom + "\t" + str(i*1000000+1) + "\t" + str((i+1)*1000000) + "\n"
-		with open(projectPath + "/runtime/02.CNVidentify/bed/" + chrom + ".1M.bed", "w") as f:
+		for i in range(0, conf["ChrLen"][chrom], conf["ParentalResolutionInKb"]*1000):
+			s += chrom + "\t" + str(i+1) + "\t" + str(i+conf["ParentalResolutionInKb"]*1000) + "\n"
+		with open(projectPath + "/runtime/02.CNVidentify/bed/" + chrom + ".bed", "w") as f:
 			f.write(s)
 	## Load offspring list
 	if not os.path.exists(conf["OffspringListFile"]):
@@ -485,7 +490,7 @@ def runStep5(conf):
 	s += "rm -f RawPhaseParentalRatio/*\n"
 	s += "go run 01.rawphase.go \"Childs.txt\" \"chrlen.txt\" \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + str(conf["ResolutionInKb"]*1000*2) + "\"\n"
 	s += "python3 02.Chr2SM.py  \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
-	s += "python3 04.Smooth.py  \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + "1000000" + "\" \"" + ",".join(conf["ParentsName"]) + "\" " + conf["TmpFolderPath"] + "/" + token + ".para" + "\n"
+	s += "python3 04.Smooth.py  \"" + str(conf["MaxThreads"]) + "\" \"" + str(conf["ResolutionInKb"]*1000) + "\" \"" + str(conf["ParentalResolutionInKb"]*1000) + "\" \"" + ",".join(conf["ParentsName"]) + "\" " + conf["TmpFolderPath"] + "/" + token + ".para" + "\n"
 	s += "python3 05.finalRawMarkers.py  \"" + str(conf["ResolutionInKb"]) + "\" \"" + ",".join(list(conf["ChrLen"].keys())) + "\"\n"
 	s += "rm " + conf["TmpFolderPath"] + "/" + token + "*\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
@@ -516,7 +521,7 @@ def runStep6(conf):
 	# Run
 	token = random_str(5)
 	s = "cd " + projectPath + "/runtime/06.MarkerScaling/\n"
-	s += "python3 downScaling.parallel.py \"1000\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
+	s += "python3 downScaling.parallel.py \"" + str(conf["ParentalResolutionInKb"]) + "\" \"" + str(conf["ParentalResolutionInKb"]) + "\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["ResolutionInKb"]) + "\" \"" + str(conf["MaxThreads"]) + "\"\n"
 	s += "rm " + conf["TmpFolderPath"] + "/" + token + "*\n"
 	with open(conf["TmpFolderPath"] + "/" + token, "w") as f:
 		f.write(s)
@@ -541,7 +546,7 @@ def runStep7(conf):
 	## Write chrom length
 	with open(projectPath + "/runtime/07.ChildInheritionPlot/chrlen.txt", "w") as f:
 		for chrom in conf["ChrLen"]:
-			f.write(chrom + "\t" + str(conf["ChrLen"][chrom]) + "\n")
+			f.write(chrom + "\t" + str(math.ceil(conf["ChrLen"][chrom]/1000)) + "\n")
 	## Write chrom cent pos
 	with open(projectPath + "/runtime/07.ChildInheritionPlot/chrcent.txt", "w") as f:
 		for chrom in conf["ChrCent"]:
@@ -587,24 +592,6 @@ def runStep8(conf):
 
 def runStep9(conf):
 	# QTL mapping
-	## Load offspring list
-	if not os.path.exists(conf["OffspringListFile"]):
-		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
-		exit(1)
-	with open(conf["OffspringListFile"]) as f:
-		lines = f.readlines()
-	offspring = []
-	for line in lines:
-		if line.strip() != "":
-			offspring.append(line.strip())
-	## Write offspring list
-	with open(projectPath + "/runtime/09.BuildGeneticMap/Childs.txt", "w") as f:
-		f.write("\n".join(offspring) + "\n")
-	## Write chrom length
-	with open(projectPath + "/runtime/09.BuildGeneticMap/chrlen.txt", "w") as f:
-		for chrom in conf["ChrLen"]:
-			f.write(chrom + "\t" + str(conf["ChrLen"][chrom]) + "\n")
-	# Run
 	token = random_str(5)
 	s = "cd " + projectPath + "/runtime/10.QTLMapping/\n"
 	s += "python3 01.Rqtl.data.py \"" + conf["PhenotypeFile"] + "\"\n"
@@ -728,16 +715,19 @@ if __name__ == '__main__':
 		if command["Command"] == "init":
 			# Check parameters
 			for key in command["Parameters"]:
-				if not key in ("--help", "--config"):
+				if not key in ("--help", "--config", "--ParentalResolutionInKb"):
 					print("[W] Unused parameter: " + key, file=sys.stderr)
 			# Branchs
 			if "--help" in command["Parameters"]:
 				printCommandHelp(command["Command"])
 			else:
 				if "--config" in command["Parameters"]:
-					init({
+					initPara = {
 						"config": command["Parameters"]["--config"]
-					})
+					}
+					if "--ParentalResolutionInKb" in command["Parameters"]:
+						initPara["ParentalResolutionInKb"] = command["Parameters"]["--ParentalResolutionInKb"]
+					init(initPara)
 				else:
 					printCommandHelp(command["Command"])
 		elif command["Command"] == "run":

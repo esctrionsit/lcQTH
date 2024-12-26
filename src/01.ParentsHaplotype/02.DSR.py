@@ -32,7 +32,7 @@ def calDSR(chrom):
         for j in range(i+1, len(SM_accidlst)):
             combineDSRheader.append(SM_accidlst[i] + "|" + SM_accidlst[j])
 
-    with open(bedpath + "/" + chrom + ".1M.bed") as f:
+    with open(bedpath + "/" + chrom + ".bed") as f:
         bedlines = f.readlines()
     for line in bedlines:
         bedele = line.strip().split("\t")

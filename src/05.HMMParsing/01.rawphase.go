@@ -31,8 +31,8 @@ func loadCHRlen(filepath string) map[string]int {
 	lines := loadList(filepath)
 	for _, line := range lines {
 		ele := strings.Split(line, "\t")
-		lenInMegabase, _ := strconv.Atoi(ele[1])
-		CHRlen[ele[0]] = lenInMegabase
+		lenInBp, _ := strconv.Atoi(ele[1])
+		CHRlen[ele[0]] = lenInBp
 	}
 
 	return CHRlen
@@ -86,7 +86,7 @@ func phase(jobs <-chan jobPara, resultsChan chan<- resPara, idx int, CHRlen map[
 
 		// phase
 		var PhasedSeq bytes.Buffer
-		maxbins := int(math.Ceil(float64(CHRlen[job.chrom]) / (float64(StepWidth) / 1000000)))
+		maxbins := int(math.Ceil(float64(CHRlen[job.chrom]) / (float64(StepWidth))))
 		P1RatioLst := make([]string, 0, maxbins)
 		P2RatioLst := make([]string, 0, maxbins)
 		// IdenticalRatioLst := make([]string, 0, maxbins)
@@ -95,7 +95,7 @@ func phase(jobs <-chan jobPara, resultsChan chan<- resPara, idx int, CHRlen map[
 		cacheMap := map[string]int{"+": 0, ".": 1, "-": 2, "x": 3}
 		RRcursor := 0
 
-		for i := WindowSize; i < CHRlen[job.chrom]*1000000; i += StepWidth {
+		for i := WindowSize; i <= CHRlen[job.chrom]; i += StepWidth {
 			for RRcursor > 0 && rrstart[RRcursor-1] >= i-WindowSize {
 				RRcursor--
 			}

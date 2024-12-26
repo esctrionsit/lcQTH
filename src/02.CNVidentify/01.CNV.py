@@ -24,9 +24,9 @@ if checkFlag:
     exit(1)
 
 def DPextract(chrom, SM, Bampath, Bedpath, Tmppath):
-    os.system("rm -f " + Tmppath + "/" + chrom + ".1M.tmp")
-    os.system("bedtools coverage -a " + Bedpath + "/" + chrom + ".1M.bed -b " + Bampath + " -counts -sorted > " + Tmppath + "/" + chrom + ".1M.DP")
-    os.system("gawk '{if($4 != 0){print int($4/100)*100}else{print 0}}' " + Tmppath + "/" + chrom + ".1M.DP > " + Tmppath + "/" + chrom + ".1M.tmp")
+    os.system("rm -f " + Tmppath + "/" + chrom + ".tmp")
+    os.system("bedtools coverage -a " + Bedpath + "/" + chrom + ".bed -b " + Bampath + " -counts -sorted > " + Tmppath + "/" + chrom + ".DP")
+    os.system("gawk '{if($4 != 0){print int($4/100)*100}else{print 0}}' " + Tmppath + "/" + chrom + ".DP > " + Tmppath + "/" + chrom + ".tmp")
 
 for k in range(len(SM_accidlst)):
     with ThreadPoolExecutor(max_workers=MAXTHR) as t: 
@@ -35,7 +35,7 @@ for k in range(len(SM_accidlst)):
             all_task.append(t.submit(DPextract, chrom, SM_accidlst[k], bampath + "/" + SM_accidlst[k] + "." + CHR + ".bam", bedpath, tmppath))
         wait(all_task, return_when=ALL_COMPLETED)
     # Mode of DP
-    os.system("cat " + tmppath + "/chr*.1M.tmp | sort | uniq -c | sort -rn -k1 > " + tmppath + "/DPvaluecount")
+    os.system("cat " + tmppath + "/chr*.tmp | sort | uniq -c | sort -rn -k1 > " + tmppath + "/DPvaluecount")
     with open(tmppath + "/DPvaluecount") as f:
         lines = f.readlines()
     maxcount = 0
@@ -54,7 +54,7 @@ for k in range(len(SM_accidlst)):
     # Load DP & normalize & phase
     ob = ""
     for chrom in CHRlis:
-        with open(tmppath + "/" + chrom + ".1M.tmp") as f:
+        with open(tmppath + "/" + chrom + ".tmp") as f:
             lines = f.readlines()
         for line in lines:
             ele = line.strip()
@@ -68,5 +68,5 @@ for k in range(len(SM_accidlst)):
             ob += "\t".join([chrom, ele]) + "\n"
     with open(outpath + "/" + SM_accidlst[k] + ".CNV", "w") as f:
         f.write(ob)
-    os.system("rm " + tmppath + "/chr*.1M.tmp")
+    os.system("rm " + tmppath + "/chr*.tmp")
     os.system("rm " + tmppath + "/DPvaluecount")

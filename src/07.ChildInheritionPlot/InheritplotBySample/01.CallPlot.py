@@ -19,7 +19,7 @@ with open(CHRinfo) as f:
     lines = f.readlines()
 for line in lines:
     ele = line.replace("\n", "").split("\t")
-    chrlen[ele[0]] = int(ele[1])*1000
+    chrlen[ele[0]] = int(ele[1])
 
 def random_str(num):
     H = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
