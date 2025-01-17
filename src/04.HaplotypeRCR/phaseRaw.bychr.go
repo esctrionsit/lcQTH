@@ -119,18 +119,20 @@ func Pred(jobs <-chan jobPara, resultsChan chan<- resPara, idx int, vcfpath stri
 			CDC := []int{0, 0} // current diffcount P1, P2
 			eleGT := make([]string, 0)
 			SNPpos := -1
-
-			for i := SNPidx; i >= 0; i-- {
-				SNPidx = i
-				eleGT = strings.Split(strings.Replace(SNPs[SNPidx], "\n", "", -1), "\t")
-				if len(eleGT) < 4 {
-					continue
-				}
-				SNPpos, _ = strconv.Atoi(eleGT[0])
-				if SNPpos >= RRstart {
-					continue
-				} else {
-					break
+			
+			if len(SNPs) > 0 {
+				for i := SNPidx; i >= 0; i-- {
+					SNPidx = i
+					eleGT = strings.Split(strings.Replace(SNPs[SNPidx], "\n", "", -1), "\t")
+					if len(eleGT) < 4 {
+						continue
+					}
+					SNPpos, _ = strconv.Atoi(eleGT[0])
+					if SNPpos >= RRstart {
+						continue
+					} else {
+						break
+					}
 				}
 			}
 
@@ -157,7 +159,7 @@ func Pred(jobs <-chan jobPara, resultsChan chan<- resPara, idx int, vcfpath stri
 				SNPpos, _ = strconv.Atoi(eleGT[0])
 				if SNPpos >= RRstart {
 					if eleGT[1] == eleGT[2] || strings.Contains(eleGT[1], ".") || eleGT[1][0] != eleGT[1][2] || eleGQ[1] < 8 || strings.Contains(eleGT[2], ".") || eleGT[2][0] != eleGT[2][2] || eleGQ[2] < 8 || strings.Contains(eleGT[3], ".") || eleGT[3][0] != eleGT[3][2] || eleGQ[3] < 4 {
-						// continue
+						// pass
 					} else {
 						if eleGT[3] != eleGT[1] {
 							CDC[0]++
