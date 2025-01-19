@@ -623,7 +623,7 @@ def runFrom(conf, stepID):
 
 def saveHmp(conf, savepath):
 	# relative to absolute
-	if savepath != "/":
+	if savepath[0] != "/":
 		savepath = os.path.normpath(projectPath + "/" + savepath)
 	print("[I] The hmp file would be saved at: " + savepath, file=sys.stderr)
 	if os.path.exists(savepath):
@@ -656,15 +656,18 @@ def saveHmp(conf, savepath):
 
 def saveHmpXlsx(conf, savepath):
 	# relative to absolute
-	if savepath != "/":
+	if savepath[0] != "/":
 		savepath = os.path.normpath(projectPath + "/" + savepath)
 	print("[I] The haplotype xlsx file would be saved at: " + savepath, file=sys.stderr)
+	if len(savepath) < 5  or savepath[-5:] != ".xlsx":
+		print("[E] Save path (\"" + savepath + "\") for xlsx file should be ended with \".xlsx\".", file=sys.stderr)
+		exit(1)
 	if os.path.exists(savepath):
 		if not os.path.isfile(savepath):
-			print("[E] Save path (\"" + savepath + "\") for hmp file is a folder.", file=sys.stderr)
+			print("[E] Save path (\"" + savepath + "\") for xlsx file is a folder.", file=sys.stderr)
 			exit(1)
 		else:
-			print("[W] Save path (\"" + savepath + "\") for hmp file is exists. The previous file would be re-writed.", file=sys.stderr)
+			print("[W] Save path (\"" + savepath + "\") for xlsx file is exists. The previous file would be re-writed.", file=sys.stderr)
 	# Load offspring list
 	if not os.path.exists(conf["OffspringListFile"]):
 		print("[E] Offspring list file does not exist. It was supposed to be at: " + conf["OffspringListFile"], file=sys.stderr)
