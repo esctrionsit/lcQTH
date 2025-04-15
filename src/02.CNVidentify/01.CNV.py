@@ -32,7 +32,7 @@ for k in range(len(SM_accidlst)):
     with ThreadPoolExecutor(max_workers=MAXTHR) as t: 
         all_task = []
         for chrom in CHRlis:
-            all_task.append(t.submit(DPextract, chrom, SM_accidlst[k], bampath + "/" + SM_accidlst[k] + "." + CHR + ".bam", bedpath, tmppath))
+            all_task.append(t.submit(DPextract, chrom, SM_accidlst[k], bampath + "/" + SM_accidlst[k] + "." + chrom + ".bam", bedpath, tmppath))
         wait(all_task, return_when=ALL_COMPLETED)
     # Mode of DP
     os.system("cat " + tmppath + "/chr*.tmp | sort | uniq -c | sort -rn -k1 > " + tmppath + "/DPvaluecount")
