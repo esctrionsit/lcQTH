@@ -43,6 +43,8 @@ def calDSR(chrom):
         SNPs = os.popen(shell).readlines()
         SNPMAT = "\t".join(SM_accidlst) + "\n"
         for SNP in SNPs:
+            if "|" in SNP:
+                SNP = SNP.replace("|", "/")
             ele = SNP.strip().split("\t")
             tmpSNPline = []
             for SMSNP in ele:
