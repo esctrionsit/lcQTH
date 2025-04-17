@@ -384,7 +384,7 @@ def runStep3(conf):
 	# Run
 	MAXTHR4Call = int(conf["MaxThreads"]/len(conf["ChrLen"].keys()))
 	MAXTHR4Call = 1 if MAXTHR4Call < 1 else MAXTHR4Call
-	with ThreadPoolExecutor(max_workers=16) as t: 
+	with ThreadPoolExecutor(max_workers=MAXTHR4Call) as t: 
 		all_task = []
 		for SM in offspring:
 			token = random_str(5)
