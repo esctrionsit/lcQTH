@@ -342,9 +342,9 @@ func main() {
 		RRs := readReadRange(SM)
 		go jobPublisher(Parents, SM, RRs, jobs, CHRlen)
 
-		ResList := make([]string, MAXT)
-		ChrList := make([]string, MAXT)
-		// SOList := make([]string, 21)
+		ResList := make([]string, CHRlen)
+		ChrList := make([]string, CHRlen)
+		// SOList := make([]string, CHRlen)
 		for r := 0; r < CHRlen; r++ {
 			ResList[r] = "X"
 			ChrList[r] = "X"
