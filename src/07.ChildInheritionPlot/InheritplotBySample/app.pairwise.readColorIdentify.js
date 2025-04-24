@@ -51,6 +51,37 @@ for(let i=0; i<gIBDheader.length; i++){
 	}
 }
 
+// Opt 1 and 3
+for(let i=0; i<Object.keys(Phasedata).length; i++){
+	let chrom = Object.keys(Phasedata)[i];
+	let start = -1;
+	for(let j=0; j<Phasedata[chrom].length; j++){
+		if(Phasedata[chrom][j] == 1 || Phasedata[chrom][j] == 3){
+			if(start == -1){
+				start = j;
+			}
+		}else{
+			if(start != -1){
+				if(start == 0){
+					for(let k=start; k<j; k++){
+						Phasedata[chrom][k] = Phasedata[chrom][j];
+					}
+				}else if(Phasedata[chrom][j] == Phasedata[chrom][start-1]){
+					for(let k=start; k<j; k++){
+						Phasedata[chrom][k] = Phasedata[chrom][j];
+					}
+				}
+				start = -1;
+			}
+		}
+	}
+	if(start > 0){
+		for(let k=start; k<Phasedata[chrom].length; k++){
+			Phasedata[chrom][k] = Phasedata[chrom][start-1];
+		}
+	}
+}
+
 // Load Chromosome Info
 let chromlen = {};
 let chrommaxlen = 0;
@@ -77,8 +108,9 @@ for(let i=0; i<centropos.length; i++){
 
 
 // Plot parameters
-let trackheight = 30*(1000/parseFloat(Binsize));
-let binwidth = 1;
+let trackheight = 15;
+let trackmaxwidth = 400;
+let binwidth = trackmaxwidth/chrommaxlen;
 // let trackheight = 120;
 // let binwidth = 0.5;
 // let colors = ["#FF3D43", "#ff99ff", "#2566CB", "#dddddd", "#22bbee", "#000000"]; //, "#ccaf00"];
@@ -102,7 +134,7 @@ let SVGLayerLegend = SVGcanvas.append("g");
 let SVGheadertextLayer = SVGcanvas.append("g");
 let SVGTitleLayer = SVGcanvas.append("g");
 let xScale = d3.scaleLinear()
-	.domain([0, chrommaxlen])
+	.domain([0, chrommaxlen*parseFloat(Binsize)/1000])
 	.range([0, chrommaxlen*binwidth]);
 let xAxis = d3.axisBottom(xScale)
 	.tickSizeOuter(0);
@@ -121,14 +153,17 @@ SVGTitleLayer.append("text")
 // xAxis
 let xAxisChart = SVGcanvas.append('g')
 	.style("stroke-width", "2px")
+	.attr("font-family", "Arial")
+	.style("font-size", "13px")
 	.call(xAxis);
 xAxisChart.append("text")
-	.attr("x", xScale(chrommaxlen) + 10)
+	.attr("x", trackmaxwidth + 5)
 	.attr("y", 13)	
 	.attr("text-anchor", "start")
 	.attr("fill", "#000")
 	.attr("font-family", "Arial")
-	.style("font-size", "13px")
+	.style("font-size", "15px")
+	.style("font-weight", "600")
 	.text("(Mbp)");
 
 // Legend
