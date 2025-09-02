@@ -300,6 +300,7 @@ def newRuntime(projectPath):
 		os.system("cp -r " + projectPath + "/src " + projectPath + "/runtime")
 		os.system("g++ " + projectPath + "/runtime/01.ParentsHaplotype/src/dsrdist.cpp -o " + projectPath + "/runtime/01.ParentsHaplotype/src/dsrdist")
 		# os.system("g++ " + projectPath + "/runtime/01.ParentsHaplotype/src/dsrdist.cpp -o " + projectPath + "/runtime/01.ParentsHaplotype/src/dsrdist")
+		os.system("bash " + projectPath + "src/installNPMpackage.sh " + projectPath + "/runtime")
 
 def checkEnv():
 	ErrFlag = False
