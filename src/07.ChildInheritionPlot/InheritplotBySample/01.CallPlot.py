@@ -14,6 +14,8 @@ CHRinfo = '../chrlen.txt'
 tmppath = sys.argv[2]
 MAXTHR = int(sys.argv[3])
 
+os.system("bash init.sh")
+
 chrlen = {}
 with open(CHRinfo) as f:
     lines = f.readlines()
