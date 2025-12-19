@@ -89,17 +89,17 @@ func Pred(jobs <-chan jobPara, resultsChan chan<- resPara, idx int, vcfpath stri
 		cmd := exec.Command("/bin/bash", "-c", shell)
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err, "\n The error was raised while executing: ", shell)
 		}
 		if err := cmd.Start(); err != nil {
-			log.Fatal(err)
+			log.Fatal(err, "\n The error was raised while executing: ", shell)
 		}
 		data, err := ioutil.ReadAll(stdout)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(err, "\n The error was raised while executing: ", shell)
 		}
 		if err := cmd.Wait(); err != nil {
-			log.Fatal(err)
+			log.Fatal(err, "\n The error was raised while executing: ", shell)
 		}
 		stdout.Close()
 		SNPs := make([]string, 0)
