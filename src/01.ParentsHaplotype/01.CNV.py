@@ -34,7 +34,10 @@ for k in range(len(SM_accidlst)):
             all_task.append(t.submit(DPextract, chrom, SM_accidlst[k], bampath + "/" + SM_accidlst[k] + "." + chrom + ".bam", bedpath, tmppath))
         wait(all_task, return_when=ALL_COMPLETED)
     # Mode of DP
-    os.system("cat " + tmppath + "/chr*.tmp | sort | uniq -c | sort -rn -k1 > " + tmppath + "/DPvaluecount")
+    chrtmpfiles = []
+    for chrom in CHRlis:
+        chrtmpfiles.append(f"tmppath/{chrom}.tmp")
+    os.system("cat " + " ".join(chrtmpfiles) + " | sort | uniq -c | sort -rn -k1 > " + tmppath + "/DPvaluecount")
     with open(tmppath + "/DPvaluecount") as f:
         lines = f.readlines()
     maxcount = 0
