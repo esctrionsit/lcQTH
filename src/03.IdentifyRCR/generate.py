@@ -25,7 +25,7 @@ def process_data(SM, chrom):
 			return
 		
 		ReturnData = [chrom, [], SM]
-		shell = "bedtools genomecov -ibam " + AlignPath + "/" + SMID + "." + chrom + ".bam -bga"
+		shell = "samtools view -b " + AlignPath + "/" + SMID + "." + chrom + ".bam " + chrom + " | bedtools genomecov -ibam - -bga"
 		sp = subprocess.Popen(shell, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		shellstdout, err = sp.communicate()
 		if err:
