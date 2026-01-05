@@ -21,8 +21,8 @@ if checkFlag:
 
 def process_data(SM, chrom):
 	try:
-		if os.path.exists("ReadCovRegionList.tmp/" + SM + "." + chrom + ".txt"):
-			return
+		# if os.path.exists("ReadCovRegionList.tmp/" + SM + "." + chrom + ".txt"):
+		# 	return
 		
 		ReturnData = [chrom, [], SM]
 		shell = "samtools view -b " + AlignPath + "/" + SMID + "." + chrom + ".bam " + chrom + " | bedtools genomecov -ibam - -bga"
