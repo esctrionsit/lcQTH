@@ -9,6 +9,7 @@ View homepage at [https://esctrionsit.github.io/lcQTH](https://esctrionsit.githu
 + Linux system with 64 bit CPU
 + Bcftools v1.11
 + Bedtools v2.29.2
++ Samtools v1.4
 + python v3.7.6
 + python packages:
   + hmmlearn v0.2.4
