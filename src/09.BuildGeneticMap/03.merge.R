@@ -14,7 +14,7 @@ for (chrid in chrs){
 }
 
 
-data <- read.csv(paste("GM/GM.s.", chrs[1],".csv"), header=F, stringsAsFactors = F)
+data <- read.csv(paste("GM/GM.s.", chrs[1],".csv", sep=""), header=F, stringsAsFactors = F)
 if (length(chrs) > 1){
 	for (chridx in 2:length(chrs)){
 		data2 <- read.csv(paste("GM/GM.s.", chrs[chridx], ".csv", sep=""),header=F, stringsAsFactors = F)
